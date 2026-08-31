@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>WebCat</title>
+<style>
+ body{
+ background-color:gray;
+ color:white;
+text-align:center;
+}
+.tool {
+    width: 260px;
+    height: 50px;
+    font-size: 16px;
+    background-color: black;
+    color: #ffffff;
+    border: none;
+    border-radius: 100px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-right: 50px;  /* 按钮间距 */
+}
+
+.tool:hover {
+    background-color: #2563eb;
+}
+
+.tool:active {
+    transform: scale(0.96);
+}
+
+.tool:last-child {
+    margin-right: 0;  /* 最后一个按钮不留间距 */
+}
+</style>
+  </head>
+  <body>	
+	<h1>Juice Tool</h1>
+	<p>↓有什么需要的呢↓</p>  
+    <div>
+     <a href="ds/deep.html">
+      <button class="tool">deepseek api调用工具</button>
+     </a>
+    </div>
+    
+     <a href="wzxs/in.html">
+      <button class="tool">Ggame maker</button>
+     </a>
+    
+  </body>
+</html>

@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Ggame Maker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: #0d0d1a;
+            color: #eee;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .app {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #e94560;
+            font-size: 1.6rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        h1 small {
+            font-size: 0.8rem;
+            color: #7a8aaa;
+            font-weight: normal;
+        }
+        .format-badge {
+            display: inline-block;
+            background: #a78bfa;
+            color: #0d0d1a;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .toolbar button {
+            background: #1a3a6b;
+            border: 1px solid #2a4a8b;
+            color: #d0d8ff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .toolbar button:hover {
+            background: #2a5a9b;
+            transform: translateY(-2px);
+        }
+        .toolbar button.success {
+            border-color: #4ade80;
+            color: #4ade80;
+        }
+        .toolbar button.success:hover {
+            background: #4ade80;
+            color: #0d0d1a;
+        }
+        .toolbar button.danger {
+            border-color: #e94560;
+            color: #e94560;
+        }
+        .toolbar button.danger:hover {
+            background: #e94560;
+            color: #fff;
+        }
+        .toolbar button.warning {
+            border-color: #fbbf24;
+            color: #fbbf24;
+        }
+        .toolbar button.warning:hover {
+            background: #fbbf24;
+            color: #0d0d1a;
+        }
+        .toolbar button.purple {
+            border-color: #a78bfa;
+            color: #a78bfa;
+        }
+        .toolbar button.purple:hover {
+            background: #a78bfa;
+            color: #0d0d1a;
+        }
+        .toolbar button.copy-btn {
+            border-color: #60a5fa;
+            color: #60a5fa;
+        }
+        .toolbar button.copy-btn:hover {
+            background: #60a5fa;
+            color: #0d0d1a;
+        }
+        .main {
+            display: grid;
+            grid-template-columns: 220px 1fr 280px;
+            gap: 12px;
+        }
+        @media (max-width: 1000px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+        }
+        .panel {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #0f3460;
+        }
+        .panel h2 {
+            color: #8a9abb;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .panel h2 .badge {
+            background: #0f3460;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            color: #6a8aaa;
+        }
+        .node-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+        .node-item {
+            background: #0f1f3f;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid transparent;
+            transition: 0.2s;
+        }
+        .node-item:hover {
+            background: #1a2f5f;
+        }
+        .node-item.active {
+            border-left-color: #e94560;
+            background: #1a2f5f;
+        }
+        .node-item .id {
+            color: #e94560;
+            font-size: 0.75rem;
+            font-family: monospace;
+        }
+        .node-item .preview {
+            color: #8a9abb;
+            font-size: 0.8rem;
+            flex: 1;
+            margin: 0 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .node-item .del {
+            color: #e94560;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 0.75rem;
+        }
+        .btn-add-node {
+            width: 100%;
+            margin-top: 8px;
+            padding: 8px;
+            background: #0f3460;
+            border: 2px dashed #2a4a8b;
+            border-radius: 6px;
+            color: #7a8aaa;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .btn-add-node:hover {
+            background: #1a3a6b;
+            border-color: #4a8ad4;
+        }
+        .editor-group {
+            margin-bottom: 10px;
+        }
+        .editor-group label {
+            display: block;
+            color: #8a9abb;
+            font-size: 0.75rem;
+            margin-bottom: 2px;
+        }
+        .editor-group input,
+        .editor-group textarea,
+        .editor-group select {
+            width: 100%;
+            padding: 6px 10px;
+            background: #0d1a2e;
+            border: 1px solid #1a3a6b;
+            border-radius: 4px;
+            color: #eee;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+        .editor-group textarea {
+            min-height: 50px;
+            resize: vertical;
+        }
+        .editor-group .hint {
+            color: #5a6a8a;
+            font-size: 0.65rem;
+            margin-top: 2px;
+        }
+        .cmd-builder {
+            background: #0d1a2e;
+            border-radius: 6px;
+            padding: 10px;
+            border: 1px solid #1a3a6b;
+            margin-top: 4px;
+        }
+        .cmd-builder .row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+        .cmd-builder select,
+        .cmd-builder input {
+            padding: 4px 8px;
+            background: #0d0d1a;
+            border: 1px solid #1a3a6b;
+            border-radius: 4px;
+            color: #eee;
+            font-size: 0.8rem;
+        }
+        .cmd-builder select {
+            min-width: 80px;
+        }
+        .cmd-builder input {
+            width: 50px;
+        }
+        .cmd-builder .btn-add-cmd {
+            padding: 4px 12px;
+            background: #4ade80;
+            border: none;
+            border-radius: 4px;
+            color: #0d0d1a;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        .cmd-builder .btn-add-cmd:hover {
+            background: #5aee90;
+        }
+        .cmd-builder .btn-sm {
+            padding: 3px 10px;
+            background: #1a3a6b;
+            border: 1px solid #2a4a8b;
+            border-radius: 4px;
+            color: #d0d8ff;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .cmd-builder .btn-sm:hover {
+            background: #2a5a9b;
+        }
+        .cmd-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin-top: 6px;
+        }
+        .cmd-item {
+            background: #0f1f3f;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #fbbf24;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 2px solid #4ade80;
+        }
+        .cmd-item .del-cmd {
+            color: #e94560;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 0.75rem;
+        }
+        .cmd-preview {
+            color: #5a6a7a;
+            font-size: 0.7rem;
+            font-family: monospace;
+            margin-top: 4px;
+            padding: 4px 8px;
+            background: #0d0d1a;
+            border-radius: 4px;
+            border: 1px solid #1a2a3a;
+        }
+        .cmd-preview .highlight {
+            color: #4ade80;
+        }
+        /* ===== 条件分支构建器 ===== */
+        .cond-branch {
+            background: #0d1a2e;
+            border-radius: 6px;
+            padding: 10px;
+            border: 2px solid #a78bfa;
+            margin-top: 4px;
+        }
+        .cond-branch .branch-title {
+            color: #a78bfa;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .cond-branch .row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+        .cond-branch select,
+        .cond-branch input {
+            padding: 4px 8px;
+            background: #0d0d1a;
+            border: 1px solid #1a3a6b;
+            border-radius: 4px;
+            color: #eee;
+            font-size: 0.8rem;
+        }
+        .cond-branch select {
+            min-width: 80px;
+        }
+        .cond-branch input {
+            width: 60px;
+        }
+        .cond-branch .btn-add-cond {
+            padding: 4px 12px;
+            background: #a78bfa;
+            border: none;
+            border-radius: 4px;
+            color: #0d0d1a;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        .cond-branch .btn-add-cond:hover {
+            background: #b89cff;
+        }
+        .cond-branch .cond-result {
+            margin-top: 6px;
+            padding: 6px 10px;
+            background: #0f1f3f;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #a78bfa;
+            border-left: 2px solid #a78bfa;
+        }
+        .cond-branch .cond-result .label {
+            color: #5a6a7a;
+            font-size: 0.65rem;
+        }
+        .option-row {
+            display: grid;
+            grid-template-columns: 1fr 0.8fr 0.6fr auto;
+            gap: 4px;
+            margin-bottom: 4px;
+            align-items: center;
+        }
+        .option-row input {
+            padding: 4px 8px;
+            background: #0d1a2e;
+            border: 1px solid #1a3a6b;
+            border-radius: 4px;
+            color: #eee;
+            font-size: 0.8rem;
+        }
+        .option-row .del-opt {
+            color: #e94560;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+        }
+        .btn-add-opt {
+            padding: 4px 12px;
+            background: #0f3460;
+            border: 1px dashed #2a4a8b;
+            border-radius: 4px;
+            color: #7a8aaa;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+            margin-top: 4px;
+        }
+        .btn-add-opt:hover {
+            background: #1a3a6b;
+        }
+        .var-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .var-item {
+            background: #0f1f3f;
+            padding: 6px 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 2px solid #4ade80;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .var-item .name {
+            color: #4ade80;
+            font-weight: bold;
+            font-size: 0.8rem;
+            font-family: monospace;
+        }
+        .var-item .type {
+            color: #6a8aaa;
+            font-size: 0.65rem;
+        }
+        .var-item .del-var {
+            color: #e94560;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 0.75rem;
+        }
+        .var-item .var-actions {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .var-item .var-actions button {
+            background: #1a3a6b;
+            border: 1px solid #2a4a8b;
+            color: #d0d8ff;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .var-item .var-actions button:hover {
+            background: #2a5a9b;
+        }
+        .var-item .var-actions .vval {
+            color: #fbbf24;
+            font-weight: bold;
+            font-size: 0.85rem;
+            min-width: 24px;
+            text-align: center;
+        }
+        .var-item .var-actions .vval-boolean {
+            color: #fbbf24;
+            font-weight: bold;
+            font-size: 0.85rem;
+            min-width: 30px;
+            text-align: center;
+        }
+        .var-item .var-actions input {
+            width: 50px;
+            padding: 2px 6px;
+            background: #0d0d1a;
+            border: 1px solid #1a3a6b;
+            border-radius: 3px;
+            color: #eee;
+            font-size: 0.75rem;
+        }
+        .var-form {
+            display: grid;
+            grid-template-columns: 1fr 0.8fr auto;
+            gap: 4px;
+            margin-top: 6px;
+            padding: 8px;
+            background: #0d1a2e;
+            border-radius: 4px;
+            display: none;
+        }
+        .var-form.show {
+            display: grid;
+        }
+        .var-form input,
+        .var-form select {
+            padding: 4px 8px;
+            background: #0d0d1a;
+            border: 1px solid #1a3a6b;
+            border-radius: 4px;
+            color: #eee;
+            font-size: 0.8rem;
+        }
+        .var-form button {
+            padding: 4px 10px;
+            background: #4ade80;
+            border: none;
+            border-radius: 4px;
+            color: #0d0d1a;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        .btn-add-var {
+            width: 100%;
+            margin-top: 6px;
+            padding: 6px;
+            background: #0f3460;
+            border: 2px dashed #2a4a8b;
+            border-radius: 4px;
+            color: #7a8aaa;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+        .btn-add-var:hover {
+            background: #1a3a6b;
+            border-color: #4ade80;
+        }
+        .var-hint {
+            background: #0f1a2e;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            color: #5a6a7a;
+            font-family: monospace;
+            margin-top: 6px;
+            border: 1px solid #1a3a4a;
+        }
+        .var-hint .highlight {
+            color: #4ade80;
+        }
+        .preview-box {
+            margin-top: 12px;
+            background: #0f1f3f;
+            border-radius: 8px;
+            padding: 12px;
+            border-left: 3px solid #4ade80;
+        }
+        .preview-box .label {
+            color: #4ade80;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+        .preview-box #previewSpeaker {
+            color: #e94560;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+        .preview-box #previewText {
+            margin: 4px 0;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+        .preview-box #previewCommands {
+            color: #fbbf24;
+            font-family: monospace;
+            font-size: 0.75rem;
+            background: #0d1a2e;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin: 4px 0;
+        }
+        .preview-box #previewVars {
+            color: #7a8aaa;
+            font-size: 0.75rem;
+            font-family: monospace;
+        }
+        .preview-box #previewVars .tag {
+            display: inline-block;
+            background: #0f1f3f;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            border: 1px solid #1a3a6b;
+            margin: 2px;
+        }
+        .preview-box #previewVars .vname {
+            color: #4ade80;
+        }
+        .preview-box #previewVars .vval {
+            color: #fbbf24;
+        }
+        .preview-box #previewOptions button {
+            display: block;
+            width: 100%;
+            padding: 6px 12px;
+            margin-bottom: 3px;
+            background: #1a3a6b;
+            border: 1px solid #2a4a8b;
+            border-radius: 4px;
+            color: #d0d8ff;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+        .preview-box #previewOptions button:hover {
+            background: #2a5a9b;
+        }
+        .preview-box #previewOptions button .cond-tag {
+            color: #a78bfa;
+            font-size: 0.65rem;
+            margin-left: 8px;
+        }
+        .preview-box #previewOptions button .fallback-tag {
+            color: #fbbf24;
+            font-size: 0.65rem;
+            margin-left: 8px;
+        }
+        .json-section {
+            margin-top: 12px;
+            background: #0d1a2e;
+            border-radius: 8px;
+            border: 1px solid #1a3a6b;
+            overflow: hidden;
+        }
+        .json-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #0d0d1a;
+            border-bottom: 1px solid #1a3a6b;
+        }
+        .json-header .label {
+            color: #7a8aaa;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .json-header .copy-btn {
+            background: #1a3a6b;
+            border: 1px solid #2a4a8b;
+            color: #d0d8ff;
+            padding: 4px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: 0.2s;
+        }
+        .json-header .copy-btn:hover {
+            background: #2a5a9b;
+        }
+        .json-header .copy-btn.copied {
+            background: #4ade80;
+            color: #0d0d1a;
+            border-color: #4ade80;
+        }
+        .json-body {
+            padding: 10px 12px;
+            max-height: 120px;
+            overflow: auto;
+            font-size: 0.65rem;
+            font-family: monospace;
+            color: #6a8a7a;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.6;
+            cursor: text;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4ade80;
+            color: #0d0d1a;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            animation: slideUp 0.3s ease;
+            z-index: 999;
+        }
+        .toast.error {
+            background: #e94560;
+            color: #fff;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app">
+        <h1>
+            🎮 Ggame Maker Tool 😼
+            <small><span class="format-badge">文字小说编辑器</span></small>
+        </h1>
+
+        <div class="toolbar">
+            <button class="success" onclick="exportJSON()">📄 导出 .json</button>
+            <button class="purple" onclick="exportJC()">🔐 导出 .jc</button>
+            <button class="copy-btn" onclick="copyJSON()">📋 复制 JSON</button>
+            <button onclick="document.getElementById('importFile').click()">📂 导入</button>
+            <input type="file" id="importFile" accept=".json,.jc" style="display:none" onchange="importFile(event)">
+            <button onclick="playGame()">▶️ 试玩</button>
+            <button class="danger" onclick="if(confirm('确定清空？')){resetAll()}">🗑️ 清空</button>
+            <button class="warning" onclick="saveToLocal()">💾 保存</button>
+        </div>
+
+        <div class="main">
+            <div class="panel">
+                <h2>📋 节点 <span class="badge" id="nodeCount">0</span></h2>
+                <div class="node-list" id="nodeList"></div>
+                <button class="btn-add-node" onclick="addNode()">＋ 添加节点</button>
+            </div>
+
+            <div class="panel">
+                <h2>✏️ 编辑节点</h2>
+                <div id="editorArea">
+                    <div style="color:#5a6a8a;text-align:center;padding:30px 0;">点击左侧节点编辑</div>
+                </div>
+                <div class="preview-box">
+                    <div class="label">▶️ 实时预览</div>
+                    <div id="previewSpeaker">-</div>
+                    <div id="previewText">点击节点查看</div>
+                    <div id="previewCommands">⚡ 无进入命令</div>
+                    <div id="previewVars">📊 变量: 无</div>
+                    <div id="previewOptions"></div>
+                </div>
+                <div class="json-section">
+                    <div class="json-header">
+                        <span class="label">📦 JSON 数据</span>
+                        <button class="copy-btn" id="copyBtn" onclick="copyJSON()">📋 复制</button>
+                    </div>
+                    <div class="json-body" id="jsonBody" onclick="selectAllJSON()">加载中...</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>📊 变量 <span class="badge" id="varCount">0</span></h2>
+                <div class="var-list" id="varList"></div>
+                <button class="btn-add-var" onclick="toggleVarForm()">＋ 添加变量</button>
+                <div class="var-form" id="varForm">
+                    <input id="varName" placeholder="变量名" />
+                    <select id="varType">
+                        <option value="number">数字</option>
+                        <option value="boolean">布尔</option>
+                        <option value="string">文本</option>
+                    </select>
+                    <button onclick="addVariable()">添加</button>
+                </div>
+                <div class="var-hint" id="varHint">
+                    💡 条件分支：满足条件走 A，不满足走 B
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  🔐 加密/解密工具
+        // ================================================================
+
+        const SECRET_KEY = 'game2024';
+
+        function encrypt(data) {
+            const json = JSON.stringify(data);
+            let result = '';
+            for (let i = 0; i < json.length; i++) {
+                const charCode = json.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length);
+                result += String.fromCharCode(charCode);
+            }
+            return btoa(encodeURIComponent(result));
+        }
+
+        function decrypt(encrypted) {
+            try {
+                const decoded = decodeURIComponent(atob(encrypted));
+                let result = '';
+                for (let i = 0; i < decoded.length; i++) {
+                    const charCode = decoded.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length);
+                    result += String.fromCharCode(charCode);
+                }
+                return JSON.parse(result);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // ================================================================
+        //  数据
+        // ================================================================
+
+        let story = {
+            start: {
+                id: 'start',
+                speaker: '🧙 系统',
+                tag: 'NPC',
+                text: '欢迎！条件分支升级版：\n- 条件满足 → 显示「满足」选项\n- 条件不满足 → 自动显示「不满足」选项',
+                options: [
+                    { text: '继续', next: 'start' }
+                ]
+            }
+        };
+        let variables = {
+            gold: { type: 'number', default: 100 },
+            hasKey: { type: 'boolean', default: false }
+        };
+        let currentNodeId = 'start';
+
+        // ================================================================
+        //  保存/加载
+        // ================================================================
+
+        function saveToLocal() {
+            localStorage.setItem('editor_data_branch', JSON.stringify({ story, variables }));
+        }
+
+        function loadFromLocal() {
+            try {
+                const data = JSON.parse(localStorage.getItem('editor_data_branch'));
+                if (data && data.story && data.story.start) {
+                    story = data.story;
+                    variables = data.variables || variables;
+                    currentNodeId = 'start';
+                    return true;
+                }
+            } catch (e) {}
+            return false;
+        }
+
+        if (loadFromLocal()) {}
+
+        // ================================================================
+        //  节点列表
+        // ================================================================
+
+        function renderList() {
+            const container = document.getElementById('nodeList');
+            container.innerHTML = '';
+            const ids = Object.keys(story);
+            document.getElementById('nodeCount').textContent = ids.length;
+            ids.forEach(id => {
+                const node = story[id];
+                const div = document.createElement('div');
+                div.className = 'node-item' + (id === currentNodeId ? ' active' : '');
+                div.innerHTML = `
+                    <span class="id">${id}</span>
+                    <span class="preview">${(node.text || '').slice(0, 20)}${(node.text || '').length > 20 ? '...' : ''}</span>
+                    <button class="del" onclick="event.stopPropagation();deleteNode('${id}')">✕</button>
+                `;
+                div.onclick = () => selectNode(id);
+                container.appendChild(div);
+            });
+            updateJSON();
+            saveToLocal();
+        }
+
+        function selectNode(id) {
+            if (!story[id]) return;
+            currentNodeId = id;
+            renderList();
+            renderEditor(id);
+            updatePreview(id);
+        }
+
+        // ================================================================
+        //  编辑器 - 条件分支
+        // ================================================================
+
+        function renderEditor(id) {
+            const node = story[id];
+            if (!node) return;
+            const area = document.getElementById('editorArea');
+
+            const commands = node.onEnter ? node.onEnter.split(';').filter(c => c.trim()) : [];
+            let cmdHTML = commands.map((cmd, i) => `
+                <div class="cmd-item">
+                    <span>${cmd.trim()}</span>
+                    <button class="del-cmd" onclick="removeCommand(${i})">✕</button>
+                </div>
+            `).join('');
+
+            let optHTML = '';
+            if (node.options) {
+                node.options.forEach((opt, i) => {
+                    const cond = opt.condition || '';
+                    const fallback = opt.fallback || '';
+                    optHTML += `
+                        <div class="option-row">
+                            <input placeholder="文字" value="${opt.text || ''}" onchange="updateOption(${i},'text',this.value)" />
+                            <input placeholder="跳转" value="${opt.next || ''}" onchange="updateOption(${i},'next',this.value)" />
+                            <button class="del-opt" onclick="deleteOption(${i})">✕</button>
+                        </div>
+                        <div style="margin-left:10px;margin-bottom:10px;padding-left:10px;border-left:2px solid #a78bfa;">
+                            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px;">
+                                <span style="color:#a78bfa;font-size:0.7rem;">🔒 条件 ${i+1}:</span>
+                                <input id="cond_input_${i}" value="${cond}" placeholder="条件" style="flex:1;padding:4px 8px;background:#0d1a2e;border:1px solid #1a3a6b;border-radius:4px;color:#eee;font-size:0.8rem;font-family:monospace;" onchange="updateOption(${i},'condition',this.value)" />
+                                <button class="btn-sm" onclick="clearCondition(${i})" style="border-color:#e94560;color:#e94560;">✕</button>
+                            </div>
+                            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                                <select id="cond_var_${i}" style="padding:3px 6px;background:#0d0d1a;border:1px solid #1a3a6b;border-radius:3px;color:#eee;font-size:0.7rem;">
+                                    ${Object.keys(variables).map(k => `<option value="${k}">${k}</option>`).join('')}
+                                </select>
+                                <select id="cond_op_${i}" style="padding:3px 6px;background:#0d0d1a;border:1px solid #1a3a6b;border-radius:3px;color:#eee;font-size:0.7rem;">
+                                    <option value="=== true">=== true</option>
+                                    <option value="=== false">=== false</option>
+                                    <option value=">=">>=</option>
+                                    <option value="<="><=</option>
+                                    <option value=">">></option>
+                                    <option value="<"><</option>
+                                    <option value="===">===</option>
+                                    <option value="!==">!==</option>
+                                </select>
+                                <input id="cond_val_${i}" placeholder="值" style="width:50px;padding:3px 6px;background:#0d0d1a;border:1px solid #1a3a6b;border-radius:3px;color:#eee;font-size:0.7rem;" />
+                                <button class="btn-sm" onclick="buildCondition(${i})" style="border-color:#a78bfa;color:#a78bfa;">➕ 生成</button>
+                            </div>
+                            <div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:4px 8px;background:#0f1f3f;border-radius:4px;border:1px solid #fbbf24;">
+                                <span style="color:#fbbf24;font-size:0.7rem;">⬇️ 条件不满足时跳转到:</span>
+                                <input id="fallback_input_${i}" value="${fallback}" placeholder="节点ID" style="flex:1;padding:4px 8px;background:#0d1a2e;border:1px solid #1a3a6b;border-radius:4px;color:#eee;font-size:0.8rem;font-family:monospace;" onchange="updateOption(${i},'fallback',this.value)" />
+                                <button class="btn-sm" onclick="clearFallback(${i})" style="border-color:#e94560;color:#e94560;">✕</button>
+                                <span style="color:#5a6a7a;font-size:0.6rem;">💡 不填则隐藏选项</span>
+                            </div>
+                            <div class="cond-result" id="cond_result_${i}">
+                                <span class="label">📋 结果预览:</span>
+                                ${cond ? `满足 → ${opt.next || '?'} | 不满足 → ${fallback || '(隐藏)'}` : '无条件'}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            const varKeys = Object.keys(variables);
+
+            area.innerHTML = `
+                <div class="editor-group">
+                    <label>🔖 ID</label>
+                    <input value="${node.id}" onchange="updateNode('id', this.value)" />
+                </div>
+                <div class="editor-group">
+                    <label>🧑 说话人</label>
+                    <input value="${node.speaker || ''}" onchange="updateNode('speaker', this.value)" />
+                </div>
+                <div class="editor-group">
+                    <label>🏷️ 标签</label>
+                    <input value="${node.tag || ''}" onchange="updateNode('tag', this.value)" />
+                </div>
+                <div class="editor-group">
+                    <label>💬 对话</label>
+                    <textarea onchange="updateNode('text', this.value)">${node.text || ''}</textarea>
+                </div>
+
+                <div class="editor-group" style="border-left:3px solid #fbbf24;padding-left:10px;">
+                    <label>⚡ 进入命令 <span style="color:#4ade80;font-size:0.65rem;">（点按钮生成）</span></label>
+                    <div class="cmd-builder">
+                        <div class="row">
+                            <select id="cmdVar">
+                                ${varKeys.map(k => `<option value="${k}">${k}</option>`).join('')}
+                            </select>
+                            <select id="cmdOp">
+                                <option value="=">=</option>
+                                <option value="+=">+=</option>
+                                <option value="-=">-=</option>
+                            </select>
+                            <input id="cmdVal" type="number" value="1" style="width:40px;" />
+                            <button class="btn-add-cmd" onclick="addCommand()">➕ 添加命令</button>
+                        </div>
+                        <div class="row">
+                            <select id="cmdBool" style="min-width:80px;">
+                                ${varKeys.filter(k => variables[k] && variables[k].type === 'boolean').map(k => `<option value="${k}">${k}</option>`).join('')}
+                            </select>
+                            <span style="color:#5a6a7a;font-size:0.7rem;">=</span>
+                            <button class="btn-sm" onclick="addBool('true')" style="border-color:#4ade80;color:#4ade80;">true</button>
+                            <button class="btn-sm" onclick="addBool('false')" style="border-color:#e94560;color:#e94560;">false</button>
+                            <button class="btn-sm" onclick="addBool('toggle')" style="border-color:#fbbf24;color:#fbbf24;">切换</button>
+                        </div>
+                        <div class="cmd-list">${cmdHTML}</div>
+                        <div class="cmd-preview">
+                            📝 代码: <span class="highlight">${node.onEnter || '(空)'}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top:10px;">
+                    <label style="color:#8a9abb;font-size:0.75rem;">🔘 选项 <span style="color:#fbbf24;font-size:0.65rem;">（支持条件不满足时跳转）</span></label>
+                    ${optHTML}
+                    <button class="btn-add-opt" onclick="addOption()">＋ 添加选项</button>
+                </div>
+            `;
+            updatePreview(id);
+            updateCommandSelects();
+        }
+
+        // ================================================================
+        //  条件构建器
+        // ================================================================
+
+        function buildCondition(index) {
+            const varSelect = document.getElementById(`cond_var_${index}`);
+            const opSelect = document.getElementById(`cond_op_${index}`);
+            const valInput = document.getElementById(`cond_val_${index}`);
+
+            const varName = varSelect.value;
+            const op = opSelect.value;
+            let val = valInput.value.trim();
+
+            const v = variables[varName];
+            if (v && v.type === 'boolean') {
+                if (op === '=== true' || op === '=== false') {
+                    val = op === '=== true' ? 'true' : 'false';
+                }
+                const condition = `state.${varName} === ${val}`;
+                document.getElementById(`cond_input_${index}`).value = condition;
+                updateOption(index, 'condition', condition);
+                showToast(`✅ 条件: state.${varName} === ${val}`);
+                updateCondResult(index);
+                return;
+            }
+
+            if (!val) {
+                showToast('❌ 请输入比较值', true);
+                return;
+            }
+            const condition = `state.${varName} ${op} ${val}`;
+            document.getElementById(`cond_input_${index}`).value = condition;
+            updateOption(index, 'condition', condition);
+            showToast(`✅ 条件: state.${varName} ${op} ${val}`);
+            updateCondResult(index);
+        }
+
+        function clearCondition(index) {
+            document.getElementById(`cond_input_${index}`).value = '';
+            updateOption(index, 'condition', '');
+            updateCondResult(index);
+            showToast('已清除条件');
+        }
+
+        function clearFallback(index) {
+            document.getElementById(`fallback_input_${index}`).value = '';
+            updateOption(index, 'fallback', '');
+            updateCondResult(index);
+            showToast('已清除不满足跳转');
+        }
+
+        function updateCondResult(index) {
+            const cond = document.getElementById(`cond_input_${index}`).value;
+            const fallback = document.getElementById(`fallback_input_${index}`).value;
+            const next = document.querySelector(`#cond_input_${index}`).closest('.cond-branch') ? 
+                document.querySelector(`#cond_input_${index}`).closest('.cond-branch').querySelector('.option-row input:first-child')?.value : '';
+
+            const resultDiv = document.getElementById(`cond_result_${index}`);
+            if (resultDiv) {
+                if (cond) {
+                    resultDiv.innerHTML = `<span class="label">📋 结果预览:</span> 满足 → ${next || '?'} | 不满足 → ${fallback || '(隐藏)'}`;
+                } else {
+                    resultDiv.innerHTML = `<span class="label">📋 结果预览:</span> 无条件`;
+                }
+            }
+        }
+
+        // ================================================================
+        //  命令操作
+        // ================================================================
+
+        function getCommands() {
+            const node = story[currentNodeId];
+            if (!node || !node.onEnter) return [];
+            return node.onEnter.split(';').filter(c => c.trim());
+        }
+
+        function setCommands(cmds) {
+            const node = story[currentNodeId];
+            if (!node) return;
+            const filtered = cmds.filter(c => c.trim());
+            if (filtered.length === 0) {
+                delete node.onEnter;
+            } else {
+                node.onEnter = filtered.join('; ');
+            }
+            renderEditor(currentNodeId);
+            renderList();
+            updatePreview(currentNodeId);
+        }
+
+        function addCommand() {
+            const v = document.getElementById('cmdVar').value;
+            const op = document.getElementById('cmdOp').value;
+            const val = document.getElementById('cmdVal').value;
+            if (!v) return;
+            const cmds = getCommands();
+            cmds.push(`state.${v} ${op} ${val}`);
+            setCommands(cmds);
+            showToast(`✅ state.${v} ${op} ${val}`);
+        }
+
+        function addBool(value) {
+            const v = document.getElementById('cmdBool').value;
+            if (!v) return;
+            const cmds = getCommands();
+            if (value === 'toggle') {
+                cmds.push(`state.${v} = !state.${v}`);
+            } else {
+                cmds.push(`state.${v} = ${value}`);
+            }
+            setCommands(cmds);
+            showToast(`✅ state.${v} = ${value}`);
+        }
+
+        function removeCommand(index) {
+            const cmds = getCommands();
+            cmds.splice(index, 1);
+            setCommands(cmds);
+        }
+
+        function updateCommandSelects() {
+            const keys = Object.keys(variables);
+            const sel1 = document.getElementById('cmdVar');
+            const sel2 = document.getElementById('cmdBool');
+            if (sel1) {
+                sel1.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join('');
+            }
+            if (sel2) {
+                sel2.innerHTML = keys.filter(k => variables[k] && variables[k].type === 'boolean')
+                    .map(k => `<option value="${k}">${k}</option>`).join('');
+            }
+        }
+
+        // ================================================================
+        //  节点操作
+        // ================================================================
+
+        function updateNode(field, value) {
+            const node = story[currentNodeId];
+            if (!node) return;
+            if (field === 'id') {
+                if (value && value !== currentNodeId) {
+                    if (story[value]) { alert('ID已存在'); return; }
+                    const data = { ...node };
+                    delete story[currentNodeId];
+                    data.id = value;
+                    story[value] = data;
+                    currentNodeId = value;
+                    renderList();
+                    renderEditor(currentNodeId);
+                    return;
+                }
+                return;
+            }
+            node[field] = value;
+            renderList();
+            updatePreview(currentNodeId);
+        }
+function addNode() {
+    // 获取所有数字ID（排除 start）
+    const ids = Object.keys(story).filter(id => id !== 'start' && !isNaN(parseInt(id)));
+    const numbers = ids.map(id => parseInt(id)).filter(n => !isNaN(n));
+    const nextNum = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
+    const id = String(nextNum);
+    
+    story[id] = {
+        id: id,
+        speaker: '新角色',
+        tag: '',
+        text: '请输入对话内容...',
+        options: [
+            { text: '继续', next: 'start' }
+        ]
+    };
+    currentNodeId = id;
+    renderList();
+    renderEditor(id);
+    updatePreview(id);
+    updateJSON();
+    showToast('✅ 已添加节点: ' + id);
+}
+        function deleteNode(id) {
+            if (id === 'start') { alert('不能删除起始节点'); return; }
+            if (!confirm('删除 "' + id + '" ？')) return;
+            delete story[id];
+            if (currentNodeId === id) currentNodeId = 'start';
+            renderList();
+            renderEditor(currentNodeId);
+        }
+
+        // ================================================================
+        //  选项操作（支持 condition + fallback）
+        // ================================================================
+
+        function updateOption(index, field, value) {
+            const node = story[currentNodeId];
+            if (!node || !node.options || !node.options[index]) return;
+            if (field === 'condition' && value === '') {
+                delete node.options[index].condition;
+            } else if (field === 'fallback' && value === '') {
+                delete node.options[index].fallback;
+            } else {
+                node.options[index][field] = value;
+            }
+            renderList();
+            updatePreview(currentNodeId);
+            renderEditor(currentNodeId);
+        }
+
+        function addOption() {
+            const node = story[currentNodeId];
+            if (!node) return;
+            if (!node.options) node.options = [];
+            node.options.push({ text: '新选项', next: 'start', condition: '', fallback: '' });
+            renderEditor(currentNodeId);
+            renderList();
+        }
+
+        function deleteOption(index) {
+            const node = story[currentNodeId];
+            if (!node || !node.options) return;
+            node.options.splice(index, 1);
+            renderEditor(currentNodeId);
+            renderList();
+        }
+
+        // ================================================================
+        //  变量管理
+        // ================================================================
+
+        function renderVars() {
+            const container = document.getElementById('varList');
+            container.innerHTML = '';
+            const keys = Object.keys(variables);
+            document.getElementById('varCount').textContent = keys.length;
+
+            if (keys.length === 0) {
+                container.innerHTML = '<div style="color:#5a6a8a;font-size:0.8rem;padding:10px 0;text-align:center;">暂无变量</div>';
+                return;
+            }
+
+            keys.forEach(key => {
+                const v = variables[key];
+                const div = document.createElement('div');
+                div.className = 'var-item';
+
+                let actions = '';
+                if (v.type === 'number') {
+                    actions = `
+                        <div class="var-actions">
+                            <button onclick="varOp('${key}', -10)">−10</button>
+                            <button onclick="varOp('${key}', -1)">−1</button>
+                            <span class="vval" id="vval_${key}">${v.default}</span>
+                            <button onclick="varOp('${key}', 1)">+1</button>
+                            <button onclick="varOp('${key}', 10)">+10</button>
+                            <input id="vinput_${key}" type="number" value="${v.default}" style="width:45px;" />
+                            <button onclick="varSet('${key}')" style="border-color:#fbbf24;color:#fbbf24;">=</button>
+                        </div>
+                    `;
+                } else if (v.type === 'boolean') {
+                    actions = `
+                        <div class="var-actions">
+                            <button onclick="varBool('${key}', true)" style="border-color:#4ade80;color:#4ade80;">true</button>
+                            <button onclick="varBool('${key}', false)" style="border-color:#e94560;color:#e94560;">false</button>
+                            <span class="vval-boolean" id="vval_${key}">${v.default ? '✅' : '❌'}</span>
+                            <button onclick="varToggle('${key}')" style="border-color:#fbbf24;color:#fbbf24;">切换</button>
+                        </div>
+                    `;
+                } else {
+                    actions = `
+                        <div class="var-actions">
+                            <input id="vinput_${key}" value="${v.default || ''}" style="width:80px;" />
+                            <button onclick="varSetString('${key}')" style="border-color:#60a5fa;color:#60a5fa;">设置</button>
+                            <span class="vval" id="vval_${key}">"${v.default || ''}"</span>
+                        </div>
+                    `;
+                }
+
+                div.innerHTML = `
+                    <span>
+                        <span class="name">${key}</span>
+                        <span class="type">${v.type}</span>
+                    </span>
+                    ${actions}
+                    <button class="del-var" onclick="deleteVariable('${key}')">✕</button>
+                `;
+                container.appendChild(div);
+            });
+            updateVarHint();
+            updateCommandSelects();
+            updatePreview(currentNodeId);
+            renderEditor(currentNodeId);
+        }
+
+        function varOp(key, delta) {
+            if (!variables[key] || variables[key].type !== 'number') return;
+            variables[key].default = (variables[key].default || 0) + delta;
+            renderVars();
+            renderList();
+            saveToLocal();
+            showToast(`📊 ${key} = ${variables[key].default}`);
+        }
+
+        function varSet(key) {
+            const input = document.getElementById(`vinput_${key}`);
+            if (!input) return;
+            const val = parseFloat(input.value);
+            if (!isNaN(val)) {
+                variables[key].default = val;
+                renderVars();
+                renderList();
+                saveToLocal();
+                showToast(`📊 ${key} = ${val}`);
+            }
+        }
+
+        function varBool(key, val) {
+            if (!variables[key] || variables[key].type !== 'boolean') return;
+            variables[key].default = val;
+            renderVars();
+            renderList();
+            saveToLocal();
+            showToast(`📊 ${key} = ${val}`);
+        }
+
+        function varToggle(key) {
+            if (!variables[key] || variables[key].type !== 'boolean') return;
+            variables[key].default = !variables[key].default;
+            renderVars();
+            renderList();
+            saveToLocal();
+            showToast(`📊 ${key} = ${variables[key].default}`);
+        }
+
+        function varSetString(key) {
+            const input = document.getElementById(`vinput_${key}`);
+            if (!input) return;
+            variables[key].default = input.value;
+            renderVars();
+            renderList();
+            saveToLocal();
+            showToast(`📊 ${key} = "${input.value}"`);
+        }
+
+        function toggleVarForm() {
+            document.getElementById('varForm').classList.toggle('show');
+        }
+
+        function addVariable() {
+            const name = document.getElementById('varName').value.trim();
+            const type = document.getElementById('varType').value;
+            if (!name) { showToast('❌ 请输入变量名', true); return; }
+            if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+                showToast('❌ 变量名格式不对', true);
+                return;
+            }
+            if (variables[name]) { showToast('❌ 已存在', true); return; }
+            const def = type === 'number' ? 0 : type === 'boolean' ? false : '';
+            variables[name] = { type, default: def };
+            document.getElementById('varName').value = '';
+            document.getElementById('varForm').classList.remove('show');
+            renderVars();
+            renderList();
+            saveToLocal();
+            showToast('✅ 已添加: ' + name);
+        }
+
+        function deleteVariable(key) {
+            if (!confirm('删除 "' + key + '" ？')) return;
+            delete variables[key];
+            renderVars();
+            renderList();
+            saveToLocal();
+        }
+
+        function updateVarHint() {
+            const keys = Object.keys(variables);
+            const hint = document.getElementById('varHint');
+            if (keys.length === 0) {
+                hint.innerHTML = '💡 还没有变量';
+            } else {
+                hint.innerHTML = `💡 可用: ${keys.map(k => `<span class="highlight">${k}</span>`).join(' ')}`;
+            }
+        }
+
+        // ================================================================
+        //  预览（支持条件 + fallback 模拟）
+        // ================================================================
+
+        function updatePreview(id) {
+            const node = story[id];
+            if (!node) return;
+
+            document.getElementById('previewSpeaker').textContent = (node.speaker || '') + (node.tag ? ` [${node.tag}]` : '');
+            document.getElementById('previewText').textContent = node.text || '';
+            document.getElementById('previewCommands').textContent = node.onEnter ? `⚡ ${node.onEnter}` : '⚡ 无进入命令';
+
+            // 显示变量状态
+            const state = {};
+            Object.keys(variables).forEach(k => { state[k] = variables[k].default; });
+            if (node.onEnter) {
+                try { eval(node.onEnter); } catch (e) {}
+            }
+            const varDisplay = document.getElementById('previewVars');
+            const keys = Object.keys(state);
+            if (keys.length > 0) {
+                varDisplay.innerHTML = '📊 ' + keys.map(k =>
+                    `<span class="tag"><span class="vname">${k}</span>=<span class="vval">${state[k]}</span></span>`
+                ).join(' ');
+            } else {
+                varDisplay.textContent = '📊 无变量';
+            }
+
+            // 预览选项 - 模拟条件判断 + fallback
+            const optContainer = document.getElementById('previewOptions');
+            optContainer.innerHTML = '';
+            if (node.options && node.options.length > 0) {
+                node.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    let label = opt.text || '选项';
+                    let isConditional = false;
+                    let isFallback = false;
+
+                    // 检查条件
+                    if (opt.condition) {
+                        try {
+                            const state = {};
+                            Object.keys(variables).forEach(k => { state[k] = variables[k].default; });
+                            const result = eval(opt.condition);
+                            if (result) {
+                                label += ` <span class="cond-tag">✅ 满足</span>`;
+                                isConditional = true;
+                            } else {
+                                // 条件不满足，检查是否有 fallback
+                                if (opt.fallback) {
+                                    label += ` <span class="fallback-tag">⬇️ 不满足 → ${opt.fallback}</span>`;
+                                    isFallback = true;
+                                } else {
+                                    label += ` <span class="cond-tag">🔒 隐藏</span>`;
+                                    btn.style.opacity = '0.4';
+                                    btn.style.cursor = 'not-allowed';
+                                }
+                                isConditional = true;
+                            }
+                        } catch (e) {
+                            label += ` <span class="cond-tag">⚠️ 条件错误</span>`;
+                        }
+                    }
+
+                    btn.innerHTML = label;
+                    btn.onclick = () => {
+                        if (opt.next && story[opt.next]) {
+                            selectNode(opt.next);
+                        } else if (opt.fallback && story[opt.fallback]) {
+                            // 条件不满足时跳转到 fallback
+                            selectNode(opt.fallback);
+                        } else {
+                            alert('跳转到: ' + (opt.next || '(无)'));
+                        }
+                    };
+                    // 如果条件不满足且没有 fallback，禁用按钮
+                    if (opt.condition) {
+                        try {
+                            const state = {};
+                            Object.keys(variables).forEach(k => { state[k] = variables[k].default; });
+                            const result = eval(opt.condition);
+                            if (!result && !opt.fallback) {
+                                btn.disabled = true;
+                            }
+                        } catch (e) {}
+                    }
+                    optContainer.appendChild(btn);
+                });
+            }
+        }
+
+        // ================================================================
+        //  JSON
+        // ================================================================
+
+        function getJSON() {
+            return JSON.stringify({ variables, story }, null, 2);
+        }
+
+        function updateJSON() {
+            document.getElementById('jsonBody').textContent = getJSON();
+        }
+
+        function copyJSON() {
+            const json = getJSON();
+            const btn = document.getElementById('copyBtn');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(json).then(() => {
+                    btn.textContent = '✅ 已复制';
+                    btn.classList.add('copied');
+                    showToast('✅ JSON 已复制！');
+                    setTimeout(() => {
+                        btn.textContent = '📋 复制';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                }).catch(() => { fallbackCopy(json); });
+            } else {
+                fallbackCopy(json);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('✅ JSON 已复制！');
+        }
+
+        function selectAllJSON() {
+            const body = document.getElementById('jsonBody');
+            const range = document.createRange();
+            range.selectNodeContents(body);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            showToast('📋 已选中，按 Ctrl+C 复制');
+        }
+
+        function exportJSON() {
+            try {
+                const data = getJSON();
+                const blob = new Blob([data], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'game_' + new Date().toISOString().slice(0, 10) + '.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+                showToast('📄 导出 .json 成功');
+            } catch (e) {
+                showToast('❌ 导出失败', true);
+            }
+        }
+
+        function exportJC() {
+            try {
+                const data = { variables, story };
+                const encrypted = encrypt(data);
+                const blob = new Blob(['JC' + encrypted], { type: 'application/octet-stream' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'game_' + new Date().toISOString().slice(0, 10) + '.jc';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(a.href);
+                showToast('🔐 导出 .jc 成功（加密格式）');
+            } catch (e) {
+                showToast('❌ 导出失败: ' + e.message, true);
+            }
+        }
+
+        function importFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const content = e.target.result;
+                    let data = null;
+
+                    if (content.startsWith('JC')) {
+                        data = decrypt(content.substring(2));
+                        if (!data || !data.story || !data.story.start) {
+                            showToast('❌ .jc 解密失败', true);
+                            return;
+                        }
+                        showToast('🔓 解密 .jc 成功');
+                    } else {
+                        data = JSON.parse(content);
+                    }
+
+                    if (data.story && data.story.start) {
+                        story = data.story;
+                        variables = data.variables || variables;
+                        currentNodeId = 'start';
+                        renderList();
+                        renderEditor(currentNodeId);
+                        renderVars();
+                        showToast('✅ 导入成功');
+                    } else {
+                        showToast('❌ 无效数据', true);
+                    }
+                } catch (err) {
+                    showToast('❌ 解析失败: ' + err.message, true);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // ================================================================
+        //  试玩
+        // ================================================================
+
+        function playGame() {
+            saveToLocal();
+            const dataStr = JSON.stringify({ variables, story });
+
+            const overlay = document.createElement('div');
+            overlay.id = 'playOverlay';
+            overlay.style.cssText = `
+                position:fixed;top:0;left:0;width:100%;height:100%;
+                background:rgba(0,0,0,0.85);z-index:9999;
+                display:flex;justify-content:center;align-items:center;padding:20px;
+            `;
+
+            const frame = document.createElement('iframe');
+            frame.style.cssText = `
+                width:100%;max-width:500px;height:90vh;
+                background:#16213e;border-radius:16px;border:1px solid #0f3460;
+            `;
+
+            let statusHTML = '';
+            Object.keys(variables).forEach(k => {
+                const v = variables[k];
+                let val = v.default;
+                if (v.type === 'boolean') val = '❌';
+                else if (v.type === 'string') val = `"${v.default || ''}"`;
+                const icon = { gold: '💰', hasKey: '🔑', hp: '❤️', atk: '⚔️' } [k] || '📊';
+                statusHTML += `<span>${icon} ${k}: <b id="s_${k}">${val}</b></span>`;
+            });
+
+            const html = `
+                <html><head><title>试玩</title>
+                <style>
+                    body{background:#1a1a2e;color:#eee;font-family:sans-serif;padding:30px;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;}
+                    #app{background:#16213e;padding:30px;border-radius:16px;max-width:500px;width:100%;}
+                    #speaker{color:#e94560;font-weight:bold;font-size:1.2rem;}
+                    #dialogue{background:#0f3460;padding:16px;border-radius:10px;min-height:70px;margin:12px 0;border-left:4px solid #4ade80;line-height:1.8;white-space:pre-wrap;}
+                    #options button{display:block;width:100%;padding:12px;margin-bottom:6px;background:#1a3a6b;border:1px solid #2a4a8b;border-radius:8px;color:#d0d8ff;cursor:pointer;text-align:left;font-size:1rem;}
+                    #options button:hover{background:#2a5a9b;}
+                    #options button:disabled{opacity:0.4;cursor:not-allowed;}
+                    #status{font-size:0.85rem;color:#7a8aaa;margin-top:12px;padding-top:12px;border-top:1px solid #1a3a6b;display:flex;gap:12px;flex-wrap:wrap;}
+                    #status b{color:#e94560;}
+                    .btn-close{background:transparent;border:1px solid #2a4a6b;color:#7a8aaa;padding:8px 20px;border-radius:20px;cursor:pointer;margin-top:14px;}
+                    .btn-close:hover{background:#2a4a6b;color:#fff;}
+                </style>
+                </head><body>
+                <div id="app">
+                    <div id="speaker">系统</div>
+                    <div id="dialogue">加载中...</div>
+                    <div id="options"></div>
+                    <div id="status">${statusHTML}</div>
+                    <button class="btn-close" onclick="window.parent.postMessage('closePlay','*')">✕ 关闭</button>
+                </div>
+                <script>
+                    const data = ${dataStr};
+                    const storyData = data.story;
+                    const varDefs = data.variables;
+                    let state = {};
+                    Object.keys(varDefs).forEach(k => { state[k] = varDefs[k].default; });
+                    let currentId = 'start';
+
+                    function goTo(id) {
+                        const node = storyData[id];
+                        if(!node)return;
+                        currentId=id;
+                        if(node.onEnter){try{eval(node.onEnter);}catch(e){}}
+                        render();updateStatus();
+                    }
+                    function render(){
+                        const node=storyData[currentId];
+                        if(!node)return;
+                        document.getElementById('speaker').textContent=node.speaker||'系统';
+                        document.getElementById('dialogue').textContent=node.text||'';
+                        const c=document.getElementById('options');
+                        c.innerHTML='';
+                        if(node.options){
+                            const avail = node.options.filter(o => {
+                                // 如果有条件，检查是否满足
+                                if(o.condition){
+                                    try{ return eval(o.condition); }
+                                    catch(e){ return false; }
+                                }
+                                return true;
+                            });
+                            // 如果所有选项都被隐藏，显示"继续"
+                            if(avail.length === 0){
+                                // 检查是否有 fallback 可用
+                                let hasFallback = false;
+                                const fallbackTargets = [];
+                                node.options.forEach(o => {
+                                    if(o.fallback){
+                                        hasFallback = true;
+                                        fallbackTargets.push(o.fallback);
+                                    }
+                                });
+                                if(hasFallback && fallbackTargets.length > 0){
+                                    // 跳转到第一个 fallback
+                                    setTimeout(() => goTo(fallbackTargets[0]), 500);
+                                    return;
+                                }
+                                const btn=document.createElement('button');
+                                btn.textContent='⏳ 没有可用选项...';
+                                btn.disabled=true;
+                                c.appendChild(btn);
+                            } else {
+                                avail.forEach(o=>{
+                                    const b=document.createElement('button');
+                                    b.textContent=o.text;
+                                    b.onclick=()=>{if(o.next)goTo(o.next);};
+                                    c.appendChild(b);
+                                });
+                            }
+                        } else {
+                            // 无选项，自动继续
+                            if(node.next){
+                                setTimeout(() => goTo(node.next), 1000);
+                            }
+                        }
+                    }
+                    function updateStatus(){
+                        ${Object.keys(variables).map(k => `
+                            const val = state.${k};
+                            const el = document.getElementById('s_${k}');
+                            if(varDefs['${k}'].type==='boolean') el.textContent = val ? '✅' : '❌';
+                            else if(varDefs['${k}'].type==='string') el.textContent = '"'+(val||'')+'"';
+                            else el.textContent = val;
+                        `).join('')}
+                    }
+                    goTo('start');
+                <\/script>
+                </body></html>
+            `;
+
+            frame.srcdoc = html;
+            overlay.appendChild(frame);
+            document.body.appendChild(overlay);
+
+            window.addEventListener('message', function(e) {
+                if (e.data === 'closePlay') {
+                    const el = document.getElementById('playOverlay');
+                    if (el) el.remove();
+                    renderList();
+                    renderEditor(currentNodeId);
+                    showToast('✅ 已关闭试玩');
+                }
+            });
+        }
+
+        // ================================================================
+        //  重置
+        // ================================================================
+
+        function resetAll() {
+            story = {
+                start: {
+                    id: 'start',
+                    speaker: '🧙 系统',
+                    tag: 'NPC',
+                    text: '欢迎！条件分支升级版：\n- 条件满足 → 显示「满足」选项\n- 条件不满足 → 自动显示「不满足」选项',
+                    options: [{ text: '继续', next: 'start' }]
+                }
+            };
+            variables = { gold: { type: 'number', default: 100 }, hasKey: { type: 'boolean', default: false } };
+            currentNodeId = 'start';
+            renderList();
+            renderEditor(currentNodeId);
+            renderVars();
+            updateJSON();
+            saveToLocal();
+            showToast('🔄 已重置');
+        }
+
+        // ================================================================
+        //  Toast
+        // ================================================================
+
+        function showToast(msg, isError = false) {
+            const old = document.querySelector('.toast');
+            if (old) old.remove();
+            const div = document.createElement('div');
+            div.className = 'toast' + (isError ? ' error' : '');
+            div.textContent = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 2500);
+        }
+
+        // ================================================================
+        //  启动
+        // ================================================================
+
+        renderList();
+        renderEditor('start');
+        renderVars();
+        updatePreview('start');
+        updateJSON();
+        showToast('💡 条件分支：满足→A，不满足→B（自动跳转）');
+    </script>
+
+</body>
+</html>

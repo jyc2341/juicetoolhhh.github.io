@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DeepSeek Agent 助手 - 真实天气</title>
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --chat-bg: #ffffff;
+            --user-bubble: #d1e9ff;
+            --ai-bubble: #eef2f6;
+            --tool-bubble: #fef3c7;
+            --border-color: #dce3ec;
+            --text-primary: #1e2b3c;
+            --text-secondary: #5f6c80;
+            --accent-color: #1a56db;
+            --accent-hover: #1545b8;
+            --danger-color: #e53e3e;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --transition: 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 16px;
+            margin: 0;
+        }
+
+        .app-container {
+            background-color: var(--chat-bg);
+            width: 100%;
+            max-width: 820px;
+            height: 92vh;
+            min-height: 500px;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1), 0 6px 12px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .chat-header {
+            padding: 16px 22px;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f5ff 100%);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title .logo {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #1a56db, #4f46e5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 4px 8px rgba(26, 86, 219, 0.3);
+        }
+
+        .header-title h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 0.3px;
+        }
+
+        .header-title .agent-badge {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .api-config {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .api-input {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            font-size: 0.85rem;
+            width: 200px;
+            background-color: white;
+            transition: var(--transition);
+            outline: none;
+            color: var(--text-primary);
+        }
+
+        .api-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
+        }
+
+        .model-select {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            font-size: 0.85rem;
+            background-color: white;
+            color: var(--text-primary);
+            outline: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .model-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: white;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn:hover {
+            background-color: #f0f4fa;
+            border-color: #cbd5e1;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 8px rgba(26, 86, 219, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            box-shadow: 0 6px 12px rgba(26, 86, 219, 0.3);
+            border: none;
+        }
+
+        .btn-danger {
+            background-color: white;
+            color: var(--danger-color);
+            border: 1px solid #fca5a5;
+        }
+
+        .btn-danger:hover {
+            background-color: #fef2f2;
+            border-color: #f87171;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 18px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            max-width: 88%;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message.assistant {
+            align-self: flex-start;
+        }
+
+        .message.tool {
+            align-self: flex-start;
+            max-width: 80%;
+        }
+
+        .message-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: bold;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .message.user .message-avatar {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background-color: #e0e7ff;
+            color: #1e3a8a;
+        }
+
+        .message.tool .message-avatar {
+            background-color: #fbbf24;
+            color: #78350f;
+            font-size: 13px;
+        }
+
+        .message-bubble {
+            padding: 13px 16px;
+            border-radius: var(--radius-md);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            word-break: break-word;
+            white-space: pre-wrap;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+
+        .message.user .message-bubble {
+            background-color: var(--user-bubble);
+            color: #0b2a4a;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant .message-bubble {
+            background-color: var(--ai-bubble);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .message.tool .message-bubble {
+            background-color: var(--tool-bubble);
+            color: #78350f;
+            border-bottom-left-radius: 4px;
+            border: 1px solid #fde68a;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.82rem;
+        }
+
+        .message-meta {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            opacity: 0.8;
+            letter-spacing: 0.3px;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 16px;
+            background-color: var(--ai-bubble);
+            border-radius: var(--radius-md);
+            width: fit-content;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #94a3b8;
+            border-radius: 50%;
+            animation: typing 1.2s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        .chat-input-area {
+            padding: 14px 18px;
+            background-color: #ffffff;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .chat-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 13px 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            font-size: 0.95rem;
+            outline: none;
+            resize: none;
+            background-color: #f9fbfd;
+            transition: var(--transition);
+            font-family: inherit;
+            max-height: 120px;
+            line-height: 1.5;
+        }
+
+        .chat-input:focus {
+            border-color: var(--accent-color);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.08);
+        }
+
+        .send-btn {
+            padding: 13px 22px;
+            border-radius: 30px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(26, 86, 219, 0.25);
+            white-space: nowrap;
+        }
+
+        .send-btn:hover {
+            background-color: var(--accent-hover);
+            box-shadow: 0 6px 14px rgba(26, 86, 219, 0.35);
+            transform: translateY(-1px);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 8px rgba(26, 86, 219, 0.3);
+        }
+
+        .send-btn:disabled {
+            background-color: #b0c4de;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .status-indicator {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #9ca3af;
+        }
+
+        .status-dot.online {
+            background-color: #22c55e;
+            box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+        }
+
+        .status-dot.working {
+            background-color: #f59e0b;
+            box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .app-container {
+                height: 95vh;
+                border-radius: 20px;
+            }
+            .chat-header {
+                padding: 12px 14px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .api-config {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            .api-input {
+                flex: 1;
+                width: auto;
+                min-width: 130px;
+            }
+            .model-select {
+                flex: 1;
+                min-width: 110px;
+            }
+            .message {
+                max-width: 94%;
+            }
+            .message.tool {
+                max-width: 90%;
+            }
+            .chat-input-area {
+                padding: 10px 12px;
+            }
+            .send-btn {
+                padding: 11px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="chat-header">
+            <div class="header-title">
+                <div class="logo">🤖</div>
+                <h2>DeepSeek Agent</h2>
+                <span class="agent-badge">Agent 模式</span>
+            </div>
+            <div class="api-config">
+                <input type="password" id="apiKeyInput" class="api-input" placeholder="输入 API Key" autocomplete="off">
+                <select id="modelSelect" class="model-select" title="选择模型">
+                    <option value="deepseek-chat">DeepSeek Chat</option>
+                    <option value="deepseek-v4-flash">DeepSeek V4 Flash</option>
+                    <option value="deepseek-reasoner">DeepSeek Reasoner</option>
+                </select>
+                <button id="saveKeyBtn" class="btn btn-primary" title="保存设置">
+                    <span>💾</span> 保存
+                </button>
+                <button id="clearChatBtn" class="btn btn-danger" title="清空对话">
+                    <span>🗑️</span> 清空
+                </button>
+            </div>
+        </div>
+
+        <div style="padding: 6px 20px; background: #fafcff; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: center;">
+            <div class="status-indicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">未连接</span>
+            </div>
+            <span style="font-size: 0.7rem; color: #8a94a6;" id="currentModelLabel">模型: deepseek-chat</span>
+        </div>
+
+        <div id="chatMessages" class="chat-messages">
+            <div class="message assistant" id="welcomeMessage">
+                <div class="message-avatar">🤖</div>
+                <div>
+                    <div class="message-bubble">你好！我是 <strong>DeepSeek Agent</strong>。✨<br>
+                    我能使用工具来帮助你：<br>
+                    🌤️ <strong>真实天气查询</strong>（Open-Meteo API）<br>
+                    🔢 <strong>计算数学</strong><br>
+                    📚 <strong>搜索资料</strong><br>
+                    请先设置 API Key，然后试试问我："新疆石河子现在天气怎么样？"</div>
+                    <div class="message-meta">系统消息</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <textarea id="chatInput" class="chat-input" rows="1" placeholder="输入消息，Agent 会自动选择工具..." disabled></textarea>
+            <button id="sendBtn" class="send-btn" disabled>
+                <span>➤</span> 发送
+            </button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const modelSelect = document.getElementById('modelSelect');
+            const saveKeyBtn = document.getElementById('saveKeyBtn');
+            const clearChatBtn = document.getElementById('clearChatBtn');
+            const chatMessages = document.getElementById('chatMessages');
+            const chatInput = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            const currentModelLabel = document.getElementById('currentModelLabel');
+
+            let apiKey = localStorage.getItem('deepseek_api_key') || '';
+            let currentModel = localStorage.getItem('deepseek_model') || 'deepseek-chat';
+            let isWaitingForResponse = false;
+            let conversationHistory = [];
+
+            // 城市坐标映射（用于天气查询）
+            const cityCoordinates = {
+                '北京': { lat: 39.9042, lon: 116.4074 },
+                '上海': { lat: 31.2304, lon: 121.4737 },
+                '广州': { lat: 23.1291, lon: 113.2644 },
+                '深圳': { lat: 22.5431, lon: 114.0579 },
+                '乌鲁木齐': { lat: 43.8256, lon: 87.6168 },
+                '石河子': { lat: 44.3054, lon: 86.0804 },
+                '新疆': { lat: 43.8256, lon: 87.6168 },
+                '克拉玛依': { lat: 45.5799, lon: 84.8892 },
+                '喀什': { lat: 39.4704, lon: 75.9898 },
+                '杭州': { lat: 30.2741, lon: 120.1551 },
+                '南京': { lat: 32.0603, lon: 118.7969 },
+                '成都': { lat: 30.5728, lon: 104.0668 },
+                '武汉': { lat: 30.5928, lon: 114.3055 },
+                '西安': { lat: 34.3416, lon: 108.9398 },
+                '重庆': { lat: 29.5630, lon: 106.5516 },
+                '天津': { lat: 39.3434, lon: 117.3616 },
+                '苏州': { lat: 31.2989, lon: 120.5853 },
+                '长沙': { lat: 28.2282, lon: 112.9388 },
+                '郑州': { lat: 34.7466, lon: 113.6254 },
+                '青岛': { lat: 36.0671, lon: 120.3826 }
+            };
+
+            const tools = [
+                {
+                    type: 'function',
+                    function: {
+                        name: 'get_weather',
+                        description: '查询指定城市的实时天气信息（真实数据）',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                city: { type: 'string', description: '城市名称，例如 "北京" 或 "石河子"' }
+                            },
+                            required: ['city']
+                        }
+                    }
+                },
+                {
+                    type: 'function',
+                    function: {
+                        name: 'calculator',
+                        description: '执行数学计算',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                expression: { type: 'string', description: '数学表达式' }
+                            },
+                            required: ['expression']
+                        }
+                    }
+                },
+                {
+                    type: 'function',
+                    function: {
+                        name: 'search_web',
+                        description: '搜索网络信息',
+                        parameters: {
+                            type: 'object',
+                            properties: {
+                                query: { type: 'string', description: '搜索关键词' }
+                            },
+                            required: ['query']
+                        }
+                    }
+                }
+            ];
+
+            // 获取真实天气数据
+            async function getRealWeather(city) {
+                const coords = cityCoordinates[city];
+                if (!coords) {
+                    // 尝试模糊匹配
+                    const matchedCity = Object.keys(cityCoordinates).find(c => city.includes(c) || c.includes(city));
+                    if (matchedCity) {
+                        return await fetchWeatherData(matchedCity, cityCoordinates[matchedCity]);
+                    }
+                    return { error: `未找到城市 "${city}" 的坐标，请尝试其他城市名称` };
+                }
+                return await fetchWeatherData(city, coords);
+            }
+
+            async function fetchWeatherData(city, coords) {
+                try {
+                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`;
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`天气 API 错误: ${response.status}`);
+                    const data = await response.json();
+                    
+                    const current = data.current;
+                    const weatherCodes = {
+                        0: '晴朗', 1: '基本晴朗', 2: '局部多云', 3: '阴天',
+                        45: '有雾', 48: '雾凇', 51: '小毛毛雨', 53: '毛毛雨', 55: '大毛毛雨',
+                        61: '小雨', 63: '中雨', 65: '大雨', 71: '小雪', 73: '中雪', 75: '大雪',
+                        80: '阵雨', 81: '中等阵雨', 82: '强阵雨', 95: '雷暴', 96: '雷暴伴冰雹', 99: '强雷暴伴冰雹'
+                    };
+                    
+                    return {
+                        city: city,
+                        temperature: Math.round(current.temperature_2m),
+                        humidity: Math.round(current.relative_humidity_2m),
+                        condition: weatherCodes[current.weather_code] || '未知',
+                        windSpeed: Math.round(current.wind_speed_10m),
+                        unit: '°C',
+                        dataSource: 'Open-Meteo 实时数据'
+                    };
+                } catch (error) {
+                    return { error: '获取天气数据失败: ' + error.message };
+                }
+            }
+
+            async function executeTool(toolName, args) {
+                switch (toolName) {
+                    case 'get_weather':
+                        return await getRealWeather(args.city);
+                    case 'calculator':
+                        try {
+                            const expression = args.expression;
+                            if (!/^[0-9+\-*/().%\s√sqrt]*$/.test(expression)) {
+                                return { error: '表达式包含不支持的字符' };
+                            }
+                            const sanitized = expression.replace(/sqrt\(/g, 'Math.sqrt(');
+                            const result = Function(`"use strict"; return (${sanitized})`)();
+                            return { result: result, expression: expression };
+                        } catch (e) {
+                            return { error: '计算错误: ' + e.message };
+                        }
+                    case 'search_web':
+                        const query = args.query || '未知搜索';
+                        const searchResults = {
+                            'DeepSeek': 'DeepSeek 是深度求索公司开发的大语言模型系列。',
+                            '人工智能': '人工智能（AI）是计算机科学的一个分支。',
+                            'default': `关于"${query}"的搜索结果：这是一个模拟的搜索结果。`
+                        };
+                        const found = searchResults[query] || searchResults['default'];
+                        return { query: query, summary: found, source: '模拟搜索' };
+                    default:
+                        return { error: '未知工具: ' + toolName };
+                }
+            }
+
+            function initialize() {
+                if (apiKey) {
+                    apiKeyInput.value = apiKey;
+                    enableChat(true);
+                    updateStatus(true, '已连接');
+                } else {
+                    enableChat(false);
+                    updateStatus(false, '未连接');
+                }
+                modelSelect.value = currentModel;
+                updateModelLabel();
+            }
+
+            function updateStatus(isOnline, message, isWorking = false) {
+                if (isWorking) {
+                    statusDot.className = 'status-dot working';
+                    statusText.textContent = message || 'Agent 工作中...';
+                } else if (isOnline) {
+                    statusDot.className = 'status-dot online';
+                    statusText.textContent = message || '已连接';
+                } else {
+                    statusDot.className = 'status-dot';
+                    statusText.textContent = message || '未连接';
+                }
+            }
+
+            function updateModelLabel() {
+                currentModelLabel.textContent = `模型: ${currentModel}`;
+            }
+
+            function enableChat(enabled) {
+                chatInput.disabled = !enabled;
+                sendBtn.disabled = !enabled || isWaitingForResponse;
+                if (enabled && !isWaitingForResponse) chatInput.focus();
+                updateSendButtonState();
+            }
+
+            function updateSendButtonState() {
+                const hasText = chatInput.value.trim().length > 0;
+                sendBtn.disabled = !apiKey || isWaitingForResponse || !hasText;
+            }
+
+            function saveSettings() {
+                const key = apiKeyInput.value.trim();
+                if (!key) { alert('请输入有效的 API Key'); return; }
+                apiKey = key;
+                currentModel = modelSelect.value;
+                localStorage.setItem('deepseek_api_key', apiKey);
+                localStorage.setItem('deepseek_model', currentModel);
+                updateModelLabel();
+                enableChat(true);
+                updateStatus(true, '已连接');
+                addSystemMessage(`设置已保存。当前模型: ${currentModel}，真实天气数据已启用。`);
+            }
+
+            function clearChat() {
+                if (isWaitingForResponse) {
+                    if (!confirm('正在处理中，确定要清空对话吗？')) return;
+                }
+                conversationHistory = [];
+                chatMessages.innerHTML = '';
+                ensureWelcomeMessage();
+                chatInput.value = '';
+                updateSendButtonState();
+            }
+
+            function ensureWelcomeMessage() {
+                if (!document.getElementById('welcomeMessage')) {
+                    const welcomeDiv = document.createElement('div');
+                    welcomeDiv.className = 'message assistant';
+                    welcomeDiv.id = 'welcomeMessage';
+                    welcomeDiv.innerHTML = `
+                        <div class="message-avatar">🤖</div>
+                        <div>
+                            <div class="message-bubble">你好！我是 <strong>DeepSeek Agent</strong>。✨</div>
+                            <div class="message-meta">系统消息</div>
+                        </div>
+                    `;
+                    chatMessages.prepend(welcomeDiv);
+                }
+            }
+
+            function addSystemMessage(text) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'message assistant';
+                msgDiv.innerHTML = `
+                    <div class="message-avatar">🤖</div>
+                    <div>
+                        <div class="message-bubble" style="background: #f1f5f9; color: #475569;">${text}</div>
+                        <div class="message-meta">系统</div>
+                    </div>
+                `;
+                chatMessages.appendChild(msgDiv);
+                scrollToBottom();
+            }
+
+            function addUserMessage(text) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'message user';
+                msgDiv.innerHTML = `
+                    <div class="message-avatar">我</div>
+                    <div>
+                        <div class="message-bubble">${escapeHtml(text)}</div>
+                        <div class="message-meta">${new Date().toLocaleTimeString()}</div>
+                    </div>
+                `;
+                chatMessages.appendChild(msgDiv);
+                scrollToBottom();
+            }
+
+            function addAssistantMessage(text) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'message assistant';
+                msgDiv.innerHTML = `
+                    <div class="message-avatar">🤖</div>
+                    <div>
+                        <div class="message-bubble">${escapeHtml(text)}</div>
+                        <div class="message-meta">${new Date().toLocaleTimeString()}</div>
+                    </div>
+                `;
+                chatMessages.appendChild(msgDiv);
+                scrollToBottom();
+            }
+
+            function addToolMessage(text) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'message tool';
+                msgDiv.innerHTML = `
+                    <div class="message-avatar">🔧</div>
+                    <div>
+                        <div class="message-bubble">${escapeHtml(text)}</div>
+                        <div class="message-meta">工具调用</div>
+                    </div>
+                `;
+                chatMessages.appendChild(msgDiv);
+                scrollToBottom();
+            }
+
+            function showTypingIndicator() {
+                const indicatorDiv = document.createElement('div');
+                indicatorDiv.className = 'message assistant';
+                indicatorDiv.id = 'typingIndicator';
+                indicatorDiv.innerHTML = `
+                    <div class="message-avatar">🤖</div>
+                    <div class="typing-indicator">
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                    </div>
+                `;
+                chatMessages.appendChild(indicatorDiv);
+                scrollToBottom();
+            }
+
+            function removeTypingIndicator() {
+                const indicator = document.getElementById('typingIndicator');
+                if (indicator) indicator.remove();
+            }
+
+            function scrollToBottom() {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            async function callDeepSeekAgent(userMessage) {
+                if (!apiKey) { alert('请先设置 API Key'); return; }
+
+                isWaitingForResponse = true;
+                updateSendButtonState();
+                sendBtn.disabled = true;
+                updateStatus(true, 'Agent 思考中...', true);
+
+                addUserMessage(userMessage);
+                chatInput.value = '';
+                showTypingIndicator();
+
+                try {
+                    const messages = [
+                        {
+                            role: 'system',
+                            content: '你是一个智能 Agent 助手。你可以使用工具来帮助用户。天气数据是真实的。'
+                        },
+                        ...conversationHistory.filter(msg => msg.role === 'user' || msg.role === 'assistant').map(msg => ({
+                            role: msg.role,
+                            content: msg.content
+                        })),
+                        { role: 'user', content: userMessage }
+                    ];
+
+                    const response = await fetch('https://api.deepseek.com/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: currentModel,
+                            messages: messages,
+                            tools: tools,
+                            tool_choice: 'auto'
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const assistantMessage = data.choices[0].message;
+                    const toolCalls = assistantMessage.tool_calls || [];
+                    const content = assistantMessage.content || '';
+
+                    removeTypingIndicator();
+
+                    if (toolCalls.length > 0) {
+                        const toolCall = toolCalls[0];
+                        const toolName = toolCall.function.name;
+                        const toolArgs = JSON.parse(toolCall.function.arguments || '{}');
+                        
+                        addToolMessage(`调用工具: ${toolName}\n参数: ${JSON.stringify(toolArgs)}`);
+
+                        const toolResult = await executeTool(toolName, toolArgs);
+                        const toolResultStr = JSON.stringify(toolResult, null, 2);
+
+                        addToolMessage(`工具结果:\n${toolResultStr}`);
+
+                        conversationHistory.push({ role: 'user', content: userMessage });
+                        conversationHistory.push({ role: 'assistant', content: content || `调用工具 ${toolName}` });
+
+                        const followUpMessages = [
+                            { role: 'system', content: '请基于工具返回的真实数据，用自然语言回答用户。' },
+                            ...conversationHistory.filter(msg => msg.role === 'user' || msg.role === 'assistant').map(msg => ({
+                                role: msg.role,
+                                content: msg.content
+                            })),
+                            {
+                                role: 'assistant',
+                                content: content || `调用工具 ${toolName}`,
+                                tool_calls: [{
+                                    id: toolCall.id,
+                                    type: 'function',
+                                    function: {
+                                        name: toolName,
+                                        arguments: JSON.stringify(toolArgs)
+                                    }
+                                }]
+                            },
+                            {
+                                role: 'tool',
+                                content: toolResultStr,
+                                tool_call_id: toolCall.id
+                            }
+                        ];
+
+                        showTypingIndicator();
+                        updateStatus(true, 'Agent 生成回复中...', true);
+
+                        const followUpResponse = await fetch('https://api.deepseek.com/chat/completions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${apiKey}`
+                            },
+                            body: JSON.stringify({
+                                model: currentModel,
+                                messages: followUpMessages
+                            })
+                        });
+
+                        if (!followUpResponse.ok) {
+                            const errorData = await followUpResponse.json().catch(() => ({}));
+                            throw new Error(errorData.error?.message || `HTTP ${followUpResponse.status}`);
+                        }
+
+                        const followUpData = await followUpResponse.json();
+                        const finalReply = followUpData.choices[0].message.content || '';
+
+                        removeTypingIndicator();
+                        addAssistantMessage(finalReply);
+                        conversationHistory.push({ role: 'assistant', content: finalReply });
+                    } else {
+                        addAssistantMessage(content);
+                        conversationHistory.push({ role: 'user', content: userMessage });
+                        conversationHistory.push({ role: 'assistant', content: content });
+                    }
+                } catch (error) {
+                    console.error('Agent 调用失败:', error);
+                    removeTypingIndicator();
+                    addSystemMessage(`⚠️ Agent 处理失败: ${error.message}`);
+                } finally {
+                    isWaitingForResponse = false;
+                    updateSendButtonState();
+                    updateStatus(!!apiKey, '已连接');
+                    if (apiKey) sendBtn.disabled = false;
+                    enableChat(!!apiKey);
+                    chatInput.focus();
+                }
+            }
+
+            function handleSendMessage() {
+                const message = chatInput.value.trim();
+                if (!message || !apiKey || isWaitingForResponse) return;
+                callDeepSeekAgent(message);
+            }
+
+            saveKeyBtn.addEventListener('click', saveSettings);
+            clearChatBtn.addEventListener('click', clearChat);
+            sendBtn.addEventListener('click', handleSendMessage);
+
+            modelSelect.addEventListener('change', function() {
+                currentModel = this.value;
+                localStorage.setItem('deepseek_model', currentModel);
+                updateModelLabel();
+            });
+
+            chatInput.addEventListener('input', updateSendButtonState);
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                }
+            });
+
+            apiKeyInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveSettings();
+                }
+            });
+
+            initialize();
+        })();
+    </script>
+</body>
+</html>

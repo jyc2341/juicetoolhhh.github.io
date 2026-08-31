@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 游戏播放器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: #0d0d1a;
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .app {
+            max-width: 600px;
+            width: 100%;
+            background: #16213e;
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid #0f3460;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+        h1 {
+            color: #4ade80;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        h1 small {
+            font-size: 0.7rem;
+            color: #5a6a8a;
+            font-weight: normal;
+        }
+        .format-badge {
+            display: inline-block;
+            background: #a78bfa;
+            color: #0d0d1a;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            font-weight: bold;
+        }
+
+        /* ===== 上传区 ===== */
+        .upload-zone {
+            border: 2px dashed #2a4a8b;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            background: #0f1a2e;
+            margin-bottom: 16px;
+        }
+        .upload-zone:hover {
+            border-color: #4a8ad4;
+            background: #142a4a;
+        }
+        .upload-zone .icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .upload-zone .hint {
+            color: #5a6a7a;
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+        .upload-zone input {
+            display: none;
+        }
+
+        /* ===== 游戏界面 ===== */
+        #gameArea {
+            display: none;
+        }
+        #speaker {
+            color: #e94560;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        #speaker .tag {
+            color: #7a8aaa;
+            font-size: 0.8rem;
+            font-weight: normal;
+            margin-left: 10px;
+        }
+        #dialogue {
+            background: #0f3460;
+            padding: 18px 22px;
+            border-radius: 12px;
+            min-height: 90px;
+            line-height: 1.9;
+            font-size: 1.05rem;
+            border-left: 4px solid #4ade80;
+            margin: 12px 0 18px 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            cursor: pointer;
+        }
+        #options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        #options button {
+            background: #1a3a6b;
+            border: 1px solid #2a4a8b;
+            color: #d0d8ff;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: left;
+            transition: 0.2s;
+        }
+        #options button:hover {
+            background: #2a5a9b;
+            transform: translateX(6px);
+        }
+        #options button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        #options button .cond-hint {
+            color: #a78bfa;
+            font-size: 0.65rem;
+            margin-left: 6px;
+        }
+        #status {
+            display: flex;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: #7a8aaa;
+            padding-top: 14px;
+            border-top: 1px solid #1a3a6b;
+            flex-wrap: wrap;
+        }
+        #status b {
+            color: #e94560;
+        }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+        .toolbar button {
+            background: transparent;
+            border: 1px solid #2a4a6b;
+            color: #8a9abb;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .toolbar button:hover {
+            background: #2a4a6b;
+            color: #fff;
+        }
+        .toolbar button.success {
+            border-color: #4ade80;
+            color: #4ade80;
+        }
+        .toolbar button.success:hover {
+            background: #4ade80;
+            color: #0d0d1a;
+        }
+        .file-info {
+            color: #5a6a7a;
+            font-size: 0.8rem;
+            margin-bottom: 12px;
+            display: none;
+        }
+        .file-info b {
+            color: #8a9abb;
+        }
+
+        /* ===== 打字光标 ===== */
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.1em;
+            background: #4ade80;
+            animation: blink 0.8s step-end infinite;
+            vertical-align: text-bottom;
+            margin-left: 2px;
+        }
+        @keyframes blink {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* ===== Toast ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4ade80;
+            color: #0d0d1a;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            box-shadow: 0 8px 30px rgba(74, 222, 128, 0.3);
+            animation: slideUp 0.4s ease;
+            z-index: 999;
+        }
+        .toast.error {
+            background: #e94560;
+            color: #fff;
+            box-shadow: 0 8px 30px rgba(233, 69, 96, 0.3);
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* ===== 加载动画 ===== */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #5a6a8a;
+        }
+        .loading .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid #1a3a6b;
+            border-top-color: #4ade80;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== 历史记录 ===== */
+        .history-toggle {
+            background: none;
+            border: none;
+            color: #5a6a7a;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            text-decoration: underline;
+        }
+        .history-toggle:hover {
+            color: #8a9abb;
+        }
+        #historyPanel {
+            display: none;
+            background: #0d1a2e;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #1a3a6b;
+        }
+        #historyPanel .h-item {
+            color: #7a8aaa;
+            font-size: 0.8rem;
+            padding: 4px 0;
+            border-bottom: 1px solid #0f1f3f;
+        }
+        #historyPanel .h-item .h-speaker {
+            color: #e94560;
+        }
+        #historyPanel .h-item .h-text {
+            color: #d0d8ff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app">
+        <h1>
+            🎮 游戏播放器
+            <small><span class="format-badge">.json</span> <span class="format-badge">.jc</span></small>
+        </h1>
+
+        <!-- ===== 上传区 ===== -->
+        <div class="upload-zone" id="uploadZone">
+            <span class="icon">📂</span>
+            <div style="font-size:1.1rem;color:#8a9abb;">点击选择 或 拖拽文件</div>
+            <div class="hint">支持 .json 和 .jc 加密格式</div>
+            <input type="file" id="fileInput" accept=".json,.jc" />
+        </div>
+
+        <!-- ===== 加载动画 ===== -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div style="margin-top:10px;">加载中...</div>
+        </div>
+
+        <!-- ===== 文件信息 ===== -->
+        <div class="file-info" id="fileInfo">
+            📄 当前游戏: <b id="fileName">-</b> ｜ 节点数: <b id="nodeCount">0</b>
+        </div>
+
+        <!-- ===== 游戏界面 ===== -->
+        <div id="gameArea">
+            <div id="speaker">
+                <span id="speakerName">系统</span>
+                <span class="tag" id="speakerTag"></span>
+            </div>
+            <div id="dialogue">
+                <span id="dialogueText">加载中...</span>
+                <span class="typing-cursor"></span>
+            </div>
+            <div id="options"></div>
+
+            <div id="status"></div>
+
+            <button class="history-toggle" onclick="toggleHistory()">📜 显示对话历史</button>
+            <div id="historyPanel"></div>
+
+            <div class="toolbar">
+                <button onclick="resetGame()">🔄 重新开始</button>
+                <button onclick="uploadAgain()">📂 换游戏</button>
+                <button class="success" onclick="exportGame()">💾 导出此游戏</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  🔐 解密工具（支持 .jc 格式）
+        // ================================================================
+
+        const SECRET_KEY = 'game2024';
+
+        function decrypt(encrypted) {
+            try {
+                const decoded = decodeURIComponent(atob(encrypted));
+                let result = '';
+                for (let i = 0; i < decoded.length; i++) {
+                    const charCode = decoded.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length);
+                    result += String.fromCharCode(charCode);
+                }
+                return JSON.parse(result);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // ================================================================
+        //  🧠 核心数据
+        // ================================================================
+
+        let storyData = null;
+        let variables = {};
+        let varDefs = {};
+        let currentNodeId = 'start';
+        let history = [];
+        let isTyping = false;
+        let typingTimer = null;
+        let currentFullText = '';
+        let currentFileName = '';
+
+        // ================================================================
+        //  上传
+        // ================================================================
+
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadZone.onclick = () => fileInput.click();
+
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) loadGameFile(file);
+            fileInput.value = '';
+        };
+
+        uploadZone.ondragover = (e) => {
+            e.preventDefault();
+            uploadZone.style.borderColor = '#4ade80';
+            uploadZone.style.background = '#1a3a2a';
+        };
+        uploadZone.ondragleave = () => {
+            uploadZone.style.borderColor = '#2a4a8b';
+            uploadZone.style.background = '#0f1a2e';
+        };
+        uploadZone.ondrop = (e) => {
+            e.preventDefault();
+            uploadZone.style.borderColor = '#2a4a8b';
+            uploadZone.style.background = '#0f1a2e';
+            const file = e.dataTransfer.files[0];
+            if (file) loadGameFile(file);
+        };
+
+        // ================================================================
+        //  加载游戏文件（支持 .json 和 .jc）
+        // ================================================================
+
+        function loadGameFile(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext !== 'json' && ext !== 'jc') {
+                showToast('❌ 请选择 .json 或 .jc 文件', true);
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            uploadZone.style.display = 'none';
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const content = e.target.result;
+                    let data = null;
+
+                    // 判断是否是 .jc 加密格式
+                    if (content.startsWith('JC')) {
+                        const encrypted = content.substring(2);
+                        data = decrypt(encrypted);
+                        if (!data || !data.story || !data.story.start) {
+                            showToast('❌ .jc 文件解密失败', true);
+                            document.getElementById('loading').style.display = 'none';
+                            uploadZone.style.display = 'block';
+                            return;
+                        }
+                        showToast('🔓 解密 .jc 成功！');
+                    } else {
+                        // 普通 JSON
+                        data = JSON.parse(content);
+                    }
+
+                    document.getElementById('loading').style.display = 'none';
+
+                    // 支持两种格式：{ story, variables } 或 纯 story
+                    if (data.story && data.story.start) {
+                        storyData = data.story;
+                        varDefs = data.variables || {};
+                    } else if (data.start) {
+                        storyData = data;
+                        varDefs = {};
+                    } else {
+                        showToast('❌ 无效的游戏数据', true);
+                        uploadZone.style.display = 'block';
+                        return;
+                    }
+
+                    // ★★★ 初始化变量（从 varDefs 读取默认值） ★★★
+                    variables = {};
+                    Object.keys(varDefs).forEach(key => {
+                        variables[key] = varDefs[key].default !== undefined ? varDefs[key].default : 0;
+                    });
+
+                    currentNodeId = 'start';
+                    history = [];
+                    currentFileName = file.name;
+
+                    document.getElementById('fileInfo').style.display = 'block';
+                    document.getElementById('fileName').textContent = file.name;
+                    document.getElementById('nodeCount').textContent = Object.keys(storyData).length;
+                    document.getElementById('gameArea').style.display = 'block';
+                    uploadZone.style.display = 'none';
+
+                    renderGame();
+                    showToast('✅ 加载成功！开始游戏吧 🎮');
+                } catch (err) {
+                    document.getElementById('loading').style.display = 'none';
+                    uploadZone.style.display = 'block';
+                    showToast('❌ 加载失败: ' + err.message, true);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ================================================================
+        //  游戏核心
+        // ================================================================
+
+        function resetGame() {
+            if (!storyData) return;
+            // ★★★ 重置变量到默认值 ★★★
+            variables = {};
+            Object.keys(varDefs).forEach(key => {
+                variables[key] = varDefs[key].default !== undefined ? varDefs[key].default : 0;
+            });
+            currentNodeId = 'start';
+            history = [];
+            renderGame();
+            updateStatus();
+            document.getElementById('historyPanel').innerHTML = '';
+            document.getElementById('historyPanel').style.display = 'none';
+            showToast('🔄 已重新开始');
+        }
+
+        function uploadAgain() {
+            storyData = null;
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('fileInfo').style.display = 'none';
+            uploadZone.style.display = 'block';
+            document.getElementById('historyPanel').innerHTML = '';
+            document.getElementById('historyPanel').style.display = 'none';
+            showToast('📂 请选择游戏文件');
+        }
+
+        function goToNode(id) {
+            if (!storyData || !storyData[id]) {
+                showToast('⚠️ 节点不存在: ' + id, true);
+                return;
+            }
+
+            // 记录历史
+            const currentNode = storyData[currentNodeId];
+            if (currentNode) {
+                history.push({
+                    speaker: currentNode.speaker || '系统',
+                    text: currentNode.text || ''
+                });
+            }
+
+            currentNodeId = id;
+            const node = storyData[id];
+
+            // ★★★ 执行进入命令（支持 state.变量 += 值） ★★★
+            if (node.onEnter) {
+                try {
+                    const state = variables;
+                    eval(node.onEnter);
+                } catch (e) {
+                    console.warn('命令执行失败:', e);
+                }
+            }
+
+            renderGame();
+            updateStatus();
+        }
+
+        // ================================================================
+        //  渲染
+        // ================================================================
+
+        function renderGame() {
+            const node = storyData[currentNodeId];
+            if (!node) return;
+
+            // 说话人
+            document.getElementById('speakerName').textContent = node.speaker || '系统';
+            document.getElementById('speakerTag').textContent = node.tag || '';
+
+            // 对话（打字机效果）
+            currentFullText = node.text || '...';
+            typeText(currentFullText);
+
+            // ★★★ 选项（支持条件判断） ★★★
+            const container = document.getElementById('options');
+            container.innerHTML = '';
+
+            if (node.options && node.options.length > 0) {
+                // 过滤可用选项
+                const available = node.options.filter(opt => {
+                    if (opt.condition) {
+                        try {
+                            const state = variables;
+                            return eval(opt.condition);
+                        } catch (e) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+
+                if (available.length === 0) {
+                    const btn = document.createElement('button');
+                    btn.textContent = '⏳ 继续...';
+                    btn.disabled = true;
+                    container.appendChild(btn);
+                    const fallback = node.options.find(o => o.next);
+                    if (fallback && fallback.next) {
+                        setTimeout(() => {
+                            if (fallback.next) goToNode(fallback.next);
+                        }, 1200);
+                    }
+                } else {
+                    available.forEach(opt => {
+                        const btn = document.createElement('button');
+                        let label = opt.text;
+                        if (opt.condition) {
+                            label += ` <span class="cond-hint">🔒</span>`;
+                        }
+                        btn.innerHTML = label;
+                        btn.onclick = () => {
+                            if (isTyping) {
+                                skipTyping();
+                                setTimeout(() => {
+                                    if (opt.next) goToNode(opt.next);
+                                }, 50);
+                            } else {
+                                if (opt.next) goToNode(opt.next);
+                            }
+                        };
+                        container.appendChild(btn);
+                    });
+                }
+            } else {
+                if (node.next) {
+                    const btn = document.createElement('button');
+                    btn.textContent = '⏳ 继续...';
+                    btn.disabled = true;
+                    container.appendChild(btn);
+                    setTimeout(() => {
+                        if (node.next) goToNode(node.next);
+                    }, 1500);
+                }
+            }
+        }
+
+        // ================================================================
+        //  打字机效果
+        // ================================================================
+
+        function typeText(fullText) {
+            const el = document.getElementById('dialogueText');
+            if (typingTimer) {
+                clearInterval(typingTimer);
+                typingTimer = null;
+            }
+            isTyping = true;
+            el.textContent = '';
+            let i = 0;
+            const speed = 30;
+
+            typingTimer = setInterval(() => {
+                if (i < fullText.length) {
+                    el.textContent += fullText[i];
+                    i++;
+                } else {
+                    clearInterval(typingTimer);
+                    typingTimer = null;
+                    isTyping = false;
+                }
+            }, speed);
+
+            const dialogueBox = document.getElementById('dialogue');
+            dialogueBox.onclick = () => {
+                if (isTyping) {
+                    skipTyping();
+                }
+            };
+        }
+
+        function skipTyping() {
+            if (typingTimer) {
+                clearInterval(typingTimer);
+                typingTimer = null;
+            }
+            document.getElementById('dialogueText').textContent = currentFullText;
+            isTyping = false;
+        }
+
+        // ================================================================
+        //  更新状态栏
+        // ================================================================
+
+        function updateStatus() {
+            const container = document.getElementById('status');
+            container.innerHTML = '';
+            const keys = Object.keys(variables);
+            if (keys.length === 0) {
+                container.innerHTML = '<span style="color:#5a6a7a;">暂无变量</span>';
+                return;
+            }
+            keys.forEach(key => {
+                const val = variables[key];
+                const def = varDefs[key];
+                let displayVal = val;
+                if (def && def.type === 'boolean') {
+                    displayVal = val ? '✅' : '❌';
+                } else if (def && def.type === 'string') {
+                    displayVal = `"${val || ''}"`;
+                }
+                const iconMap = {
+                    'favor': '❤️',
+                    'hasKey': '🔑',
+                    'hasSword': '🗡️',
+                    'hp': '❤️',
+                    'sanity': '🧠',
+                    'popularity': '⭐',
+                    'fans': '👥',
+                    'money': '💰',
+                    'gold': '💰',
+                    'energy': '⚡',
+                    'skill': '🎤',
+                    'stress': '😰',
+                    'hasFire': '🔥',
+                    'hasMirror': '🪞',
+                    'hasAmulet': '🧿',
+                    'cluesFound': '🔍',
+                    'hasFlashlight': '🔦',
+                    'hasNote': '📄',
+                    'hasCrowbar': '🔧',
+                    'hasCode': '🔢',
+                    'hasPotion': '🧪',
+                    'hasShield': '🛡️',
+                    'hasMap': '🗺️',
+                    'hasCrown': '👑'
+                };
+                const icon = iconMap[key] || '📊';
+                const span = document.createElement('span');
+                span.innerHTML = `${icon} ${key}: <b>${displayVal}</b>`;
+                container.appendChild(span);
+            });
+        }
+
+        // ================================================================
+        //  对话历史
+        // ================================================================
+
+        function toggleHistory() {
+            const panel = document.getElementById('historyPanel');
+            if (panel.style.display === 'block') {
+                panel.style.display = 'none';
+            } else {
+                panel.innerHTML = history.map(h =>
+                    `<div class="h-item"><span class="h-speaker">${h.speaker}:</span> <span class="h-text">${h.text}</span></div>`
+                ).join('');
+                if (history.length === 0) {
+                    panel.innerHTML = '<div style="color:#5a6a7a;padding:8px;text-align:center;">还没有对话记录</div>';
+                }
+                panel.style.display = 'block';
+            }
+        }
+
+        // ================================================================
+        //  导出当前游戏
+        // ================================================================
+
+        function exportGame() {
+            if (!storyData) {
+                showToast('❌ 没有加载游戏', true);
+                return;
+            }
+            const data = varDefs && Object.keys(varDefs).length > 0 ? {
+                variables: varDefs,
+                story: storyData
+            } : storyData;
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'game_' + new Date().toISOString().slice(0, 10) + '.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('✅ 导出成功！');
+        }
+
+        // ================================================================
+        //  Toast
+        // ================================================================
+
+        function showToast(msg, isError = false) {
+            const old = document.querySelector('.toast');
+            if (old) old.remove();
+            const div = document.createElement('div');
+            div.className = 'toast' + (isError ? ' error' : '');
+            div.textContent = msg;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        // ================================================================
+        //  暴露全局
+        // ================================================================
+
+        window.resetGame = resetGame;
+        window.uploadAgain = uploadAgain;
+        window.exportGame = exportGame;
+        window.goToNode = goToNode;
+        window.toggleHistory = toggleHistory;
+    </script>
+
+</body>
+</html>
